@@ -1,68 +1,52 @@
-const fs = require("fs/promises");
-const uuid = require("uuid").v4;
+const {
+  findContactById,
+  getAllContacts,
+  deleteContact,
+  createContact,
+  putContact,
+  updateStatusContact,
+} = require("../services/services");
+
 
 const listContacts = async () => {
-  const contactList = JSON.parse(
-    await fs.readFile("./models/contacts.json", () => {})
-  );
+  const contactList = await getAllContacts();
+
   return contactList;
 };
 
+
 const getContactById = async (contactId) => {
-  const contactList = await listContacts();
-  const searchContacts = contactList.find(
-    (contact) => contact.id === contactId
-  );
-  return searchContacts;
+  const searchedContact = await findContactById(contactId);
+
+  return searchedContact;
 };
+
 
 const removeContact = async (contactId) => {
-  const contactList = await listContacts();
-  const deleteContacts = contactList.filter(
-    (contact) => contact.id !== contactId
-  );
-  if (contactList.length === deleteContacts.length) {
-    return false;
-  }
+  const deletedContact = await deleteContact(contactId);
+  console.log(deletedContact);
 
-  fs.writeFile("./models/contacts.json", JSON.stringify(deleteContacts));
-  return true;
+  return deletedContact;
 };
 
+
 const addContact = async (body) => {
-  const contactList = await listContacts();
-  const newContact = { id: uuid(), ...body };
-
-  contactList.push(newContact);
+  const newContact = await createContact(body);
   console.log(`newContact:`, newContact);
-
-  fs.writeFile("./models/contacts.json", JSON.stringify(contactList));
 
   return newContact;
 };
 
+
 const updateContact = async (contactId, body) => {
-  const contactList = await listContacts();
+  const updatedContact = await putContact(contactId, body);
+  console.log(`updatedContact:`, updatedContact);
+  return updatedContact;
+};
 
-  let updateIndex;
-  const contactToUpdate = contactList.find((item, index) => {
-    if (item.id === contactId) {
-      console.log(`item:`, item);
-      updateIndex = index;
-      return item;
-    }
 
-    return false;
-  });
-
-  if (!contactToUpdate) {
-    return {};
-  }
-  const updatedContact = { ...contactToUpdate, ...body };
-
-  contactList.splice(updateIndex, 1, updatedContact);
-
-  fs.writeFile("./models/contacts.json", JSON.stringify(contactList));
+const addToFavourites = async (contactId, body) => {
+  const updatedContact = await updateStatusContact(contactId, body);
 
   return updatedContact;
 };
@@ -73,4 +57,5 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
+  addToFavourites,
 };
