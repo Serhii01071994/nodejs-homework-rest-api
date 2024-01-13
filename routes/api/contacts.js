@@ -27,7 +27,7 @@ const updateSchema = Joi.object({
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
+router.get("/", protect, async (req, res, next) => {
   try {
     const favoriteFilter = req.query.favorite === "true";
     const page = req.query.page ?? 1;
@@ -42,7 +42,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", protect, async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const ownerId = req.owner;

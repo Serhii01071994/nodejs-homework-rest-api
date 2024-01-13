@@ -7,9 +7,10 @@ const {
 const { userValidators } = require("../validators");
 const jwtServise = require("../services/jwt-servise.js");
 const { subscriptionsEnum } = require("../constants/subscriptions-enum.js");
-// const { subscriptionsEnum } = require("../constants/subscriptions-enum");
+
 
 exports.checkSignupData = async (req, res, next) => {
+  console.log(req.body)
   const userData = req.body;
 
   const validation = userValidators.createSchema.validate(userData);
