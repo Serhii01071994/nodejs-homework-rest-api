@@ -5,8 +5,7 @@ const {
   createContact,
   putContact,
   updateStatusContact,
-} = require("../services/services");
-
+} = require("../services/db-services/services");
 
 const listContacts = async () => {
   const contactList = await getAllContacts();
@@ -14,13 +13,11 @@ const listContacts = async () => {
   return contactList;
 };
 
-
 const getContactById = async (contactId) => {
   const searchedContact = await findContactById(contactId);
 
   return searchedContact;
 };
-
 
 const removeContact = async (contactId) => {
   const deletedContact = await deleteContact(contactId);
@@ -29,7 +26,6 @@ const removeContact = async (contactId) => {
   return deletedContact;
 };
 
-
 const addContact = async (body) => {
   const newContact = await createContact(body);
   console.log(`newContact:`, newContact);
@@ -37,13 +33,11 @@ const addContact = async (body) => {
   return newContact;
 };
 
-
 const updateContact = async (contactId, body) => {
   const updatedContact = await putContact(contactId, body);
   console.log(`updatedContact:`, updatedContact);
   return updatedContact;
 };
-
 
 const addToFavourites = async (contactId, body) => {
   const updatedContact = await updateStatusContact(contactId, body);
