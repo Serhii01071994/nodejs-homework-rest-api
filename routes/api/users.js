@@ -8,6 +8,9 @@ const {
   returnLoggedInUser,
   logOut,
   getCurrentUser,
+  uploadUserPhoto,
+  normalizePhoto,
+  saveUserPhoto,
 } = require("../../middlewares/userMiddlewares");
 const { protect } = require("../../middlewares/contactMiddlewares");
 
@@ -20,5 +23,18 @@ router.post("/login", checkLoginData, returnLoggedInUser);
 router.post("/logout", protect, logOut);
 
 router.get("/current", protect, getCurrentUser);
+
+router.patch(
+  "/avatars",
+  protect,
+  uploadUserPhoto,
+  normalizePhoto,
+  saveUserPhoto,
+  (req, res, next) => {
+    res
+      .status(200)
+      .json({ msg: "Success", file: req.file.path.replace("public", "") });
+  }
+);
 
 module.exports = router;

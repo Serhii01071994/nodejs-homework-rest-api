@@ -47,3 +47,9 @@ exports.createUser = async (body) => {
   }
   return newUser;
 };
+
+exports.updateAvatar = async (avatarUrl, userId) => {
+  const userToUpdate = await User.findById(userId);
+  userToUpdate.avatar = avatarUrl;
+  userToUpdate.save();
+};
