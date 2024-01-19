@@ -57,9 +57,9 @@ exports.makeDataReady = async (req, res, next) => {
 
 exports.addUserToDB = async (req, res, next) => {
   const newUser = await createUser(req.body);
+  newUser.verificationToken = uuid();
 const{email} = req.body;
   newUser.token = await jwtServise.signToken(newUser._id);
-  newUser.verificationToken = uuid();
 
   const verifyEmail = {
     to: email,
