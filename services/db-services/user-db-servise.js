@@ -15,18 +15,39 @@ const UserSchema = new mongoose.Schema({
     unique: true,
   },
   token: String,
+
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, "Verify token is required"],
+  },
 });
 
 const User = mongoose.model("user", UserSchema);
 
+
+
 exports.checkUserEmail = async (email) => {
   const user = await User.findOne({ email });
+
   if (!user) {
     console.log("not exist");
   } else {
     console.log("exist");
     throw new Error();
   }
+  
+};
+
+exports.findUserByVeryficationToken = async (verificationToken) => {
+  const user = await User.findOne(verificationToken);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user;
 };
 
 exports.findUserByFilter = async (filter) => {

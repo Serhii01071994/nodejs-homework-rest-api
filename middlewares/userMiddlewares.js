@@ -11,11 +11,12 @@ const { subscriptionsEnum } = require("../constants/subscriptions-enum.js");
 const { genAvatar } = require("../services/avatar-service");
 const multer = require("multer");
 const Jimp = require("jimp");
+// const sendEmail = require("../helpers/sendEmail.js");
 const uuid = require("uuid").v4;
-
+const { User } = require("../services/db-services/user-db-servise");
 
 exports.checkSignupData = async (req, res, next) => {
-  console.log(req.body)
+  console.log(req.body);
   const userData = req.body;
 
   const validation = userValidators.createSchema.validate(userData);
@@ -43,6 +44,7 @@ exports.makeDataReady = async (req, res, next) => {
 
   newUser.password = hash;
   newUser.avatar = await genAvatar(newUser.email);
+
   if (!newUser.subscription) {
     newUser.subscription = subscriptionsEnum.STARTER;
   }
@@ -55,14 +57,38 @@ exports.addUserToDB = async (req, res, next) => {
   const newUser = await createUser(req.body);
 
   newUser.token = await jwtServise.signToken(newUser._id);
-
+  newUser.verificationToken = uuid();
+  
   await newUser.save();
 
   newUser.password = undefined;
 
   res.status(201).json(newUser);
+console.log(newUser.verificationToken);
+
 };
 
+exports.verifyEmail = async (req, res) => {
+   console.log("verify");
+   const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  console.log(verificationToken);
+   if (!user) throw res.status(404).json({msg:"User not found"});
+
+   await User.findByIdAndUpdate(user._id, {
+     verify: true,
+     verificationToken: null,
+   });
+   res.json({
+     message: "Verification successful",
+   });
+  //   to: req.body.email,
+  //   subject: "Verify email",
+  //   html: `<a target="_blank" href="${process.env.BASE_URL}/users/verify/${this.verificationToken}">Click verify email</a>`,
+  // };
+
+  // await sendEmail(verifyEmail);
+}
 // LOGIN
 
 exports.checkLoginData = async (req, res, next) => {
@@ -101,8 +127,11 @@ exports.checkLoginData = async (req, res, next) => {
     }
   } catch (error) {
     res.status(401).json({ message: "Email or password is wrong" });
+
   }
 };
+
+
 
 exports.returnLoggedInUser = async (req, res, next) => {
   const token = req.token;
@@ -128,7 +157,6 @@ exports.getCurrentUser = async (req, res, next) => {
   const token = req.headers.authorization.split(" ")[1];
   const id = await jwtServise.checkToken(token);
   const currentUser = await findUserByFilter({ _id: id });
-
   currentUser.password = undefined;
 
   res.status(200).json(currentUser);

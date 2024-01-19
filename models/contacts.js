@@ -5,7 +5,7 @@ const {
   createContact,
   putContact,
   updateStatusContact,
-} = require("../services/db-services/services");
+} = require("../services/db-services/contacts-db-serice");
 
 const listContacts = async () => {
   const contactList = await getAllContacts();

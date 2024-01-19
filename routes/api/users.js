@@ -11,12 +11,16 @@ const {
   uploadUserPhoto,
   normalizePhoto,
   saveUserPhoto,
+  verifyEmail,
+  
 } = require("../../middlewares/userMiddlewares");
 const { protect } = require("../../middlewares/contactMiddlewares");
 
 const router = express.Router();
 
 router.post("/register", checkSignupData, makeDataReady, addUserToDB);
+
+router.get("/users/verify/:verificationToken", verifyEmail);
 
 router.post("/login", checkLoginData, returnLoggedInUser);
 
@@ -36,5 +40,6 @@ router.patch(
       .json({ msg: "Success", file: req.file.path.replace("public", "") });
   }
 );
+
 
 module.exports = router;
