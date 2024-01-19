@@ -11,7 +11,7 @@ const {
   uploadUserPhoto,
   normalizePhoto,
   saveUserPhoto,
-  verifyEmail,
+  // verifyEmail,
   
 } = require("../../middlewares/userMiddlewares");
 const { protect } = require("../../middlewares/contactMiddlewares");
@@ -20,7 +20,7 @@ const router = express.Router();
 
 router.post("/register", checkSignupData, makeDataReady, addUserToDB);
 
-router.get("/users/verify/:verificationToken", verifyEmail);
+// router.get("/verify/:verificationToken", verifyEmail);
 
 router.post("/login", checkLoginData, returnLoggedInUser);
 

@@ -4,6 +4,7 @@ const {
   createUser,
   findUserByFilter,
   updateAvatar,
+  // findUserByVeryficationToken,
 } = require("../services/db-services/user-db-servise");
 const { userValidators } = require("../validators");
 const jwtServise = require("../services/jwt-servise.js");
@@ -11,9 +12,10 @@ const { subscriptionsEnum } = require("../constants/subscriptions-enum.js");
 const { genAvatar } = require("../services/avatar-service");
 const multer = require("multer");
 const Jimp = require("jimp");
+const sendEmail = require("../helpers/sendEmail.js");
 // const sendEmail = require("../helpers/sendEmail.js");
 const uuid = require("uuid").v4;
-const { User } = require("../services/db-services/user-db-servise");
+
 
 exports.checkSignupData = async (req, res, next) => {
   console.log(req.body);
@@ -55,10 +57,17 @@ exports.makeDataReady = async (req, res, next) => {
 
 exports.addUserToDB = async (req, res, next) => {
   const newUser = await createUser(req.body);
-
+const{email} = req.body;
   newUser.token = await jwtServise.signToken(newUser._id);
   newUser.verificationToken = uuid();
-  
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify email",
+    html: `<a target="_blank" href="/users/verify/${newUser.verificationToken}">Click verify email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
   await newUser.save();
 
   newUser.password = undefined;
@@ -68,27 +77,29 @@ console.log(newUser.verificationToken);
 
 };
 
-exports.verifyEmail = async (req, res) => {
-   console.log("verify");
-   const { verificationToken } = req.params;
-  const user = await User.findOne({ verificationToken });
-  console.log(verificationToken);
-   if (!user) throw res.status(404).json({msg:"User not found"});
+// exports.verifyEmail = async (req, res) => {
+//    console.log("verify");
+//   //  const { verificationToken } = req.params;
+   
+//   const user = await findUserByVeryficationToken({ verificationToken:req.body});
+//   console.log(`verrify user:`,user)
 
-   await User.findByIdAndUpdate(user._id, {
-     verify: true,
-     verificationToken: null,
-   });
-   res.json({
-     message: "Verification successful",
-   });
-  //   to: req.body.email,
-  //   subject: "Verify email",
-  //   html: `<a target="_blank" href="${process.env.BASE_URL}/users/verify/${this.verificationToken}">Click verify email</a>`,
-  // };
+//   //  if (!user) throw res.status(404).json({msg:"User not found"});
 
-  // await sendEmail(verifyEmail);
-}
+//   //  await User.findByIdAndUpdate(user._id, {
+//   //    verify: true,
+//   //    verificationToken: null,
+//   //  });
+//   //  res.json({
+//   //    message: "Verification successful",
+//   //  });
+//   //   to: req.body.email,
+//   //   subject: "Verify email",
+//   //   html: `<a target="_blank" href="${process.env.BASE_URL}/users/verify/${this.verificationToken}">Click verify email</a>`,
+//   // };
+
+//   // await sendEmail(verifyEmail);
+// }
 // LOGIN
 
 exports.checkLoginData = async (req, res, next) => {
