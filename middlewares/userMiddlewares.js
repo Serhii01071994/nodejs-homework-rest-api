@@ -4,7 +4,7 @@ const {
   createUser,
   findUserByFilter,
   updateAvatar,
-  findUserByVeryficationToken,
+  
 } = require("../services/db-services/user-db-servise");
 const { userValidators } = require("../validators");
 const jwtServise = require("../services/jwt-servise.js");
@@ -13,8 +13,9 @@ const { genAvatar } = require("../services/avatar-service");
 const multer = require("multer");
 const Jimp = require("jimp");
 const sendEmail = require("../helpers/sendEmail.js");
+const User = require("../services/db-services/user-db-servise");
 const uuid = require("uuid").v4;
-const { User } = require("../services/db-services/user-db-servise.js");
+
 
 exports.checkSignupData = async (req, res, next) => {
   console.log(req.body);
@@ -72,25 +73,25 @@ exports.addUserToDB = async (req, res, next) => {
   newUser.password = undefined;
 
   res.status(201).json(newUser);
-  console.log(newUser.verificationToken);
 };
 
 exports.verifyEmail = async (req, res) => {
   console.log("verify");
-  const { verificationToken } = req.params;
+  const verificationToken = req.params.verificationToken;
+  
+  const searchUser = await User.findUserByVeryficationToken(verificationToken);
 
-  const user = await findUserByVeryficationToken({ verificationToken });
-  console.log(`verrify user:`, user);
+  console.log(`verrify user:`, searchUser);
 
-  if (!user) throw res.status(404).json({ msg: "User not found" });
+  // if (!searchUser) throw res.status(404).json({ msg: "User not found" });
 
-  await User.findByIdAndUpdate(user._id, {
-    verify: true,
-    verificationToken: null,
-  });
-  res.json({
-    message: "Verification successful",
-  });
+  // await User.findByIdAndUpdate(searchUser._id, {
+  //   verify: true,
+  //   verificationToken: null,
+  // });
+  // res.json({
+  //   message: "Verification successful",
+  // });
 };
 
 // LOGIN

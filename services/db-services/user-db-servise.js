@@ -43,11 +43,9 @@ exports.checkUserEmail = async (email) => {
 };
 
 exports.findUserByVeryficationToken = async (verificationToken) => {
-  const user = await User.findOne(verificationToken);
-  if (!user) {
-    throw new Error("User not found");
-  }
-  return user;
+  const searchUserser = await User.findOne({ verificationToken });
+ console.log(`searchuser service`,searchUserser)
+  return searchUserser;
 };
 
 exports.findUserByFilter = async (filter) => {
@@ -74,3 +72,4 @@ exports.updateAvatar = async (avatarUrl, userId) => {
   userToUpdate.avatar = avatarUrl;
   userToUpdate.save();
 };
+
