@@ -28,8 +28,6 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model("user", UserSchema);
 
-
-
 exports.checkUserEmail = async (email) => {
   const user = await User.findOne({ email });
 
@@ -39,14 +37,23 @@ exports.checkUserEmail = async (email) => {
     console.log("exist");
     throw new Error();
   }
-  
 };
 
 exports.findUserByVeryficationToken = async (verificationToken) => {
-  const searchUserser = await User.findOne({ verificationToken });
- console.log(`searchuser service`,searchUserser)
-  return searchUserser;
+  const searchUser = await User.findOne({ verificationToken });
+  console.log(`searchuser service`, searchUser);
+  await User.findByIdAndUpdate(searchUser._id, {
+    verify: true,
+    verificationToken: null,
+  });
+  return searchUser;
 };
+
+exports.findUserByEmail = async (email) => { 
+  const searchUser = await User.findOne({ email });
+  await User.findOne({ email: email });
+  return searchUser;
+}
 
 exports.findUserByFilter = async (filter) => {
   const user = await User.findOne(filter);
@@ -72,4 +79,3 @@ exports.updateAvatar = async (avatarUrl, userId) => {
   userToUpdate.avatar = avatarUrl;
   userToUpdate.save();
 };
-

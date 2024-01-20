@@ -4,7 +4,8 @@ const {
   createUser,
   findUserByFilter,
   updateAvatar,
-  
+  findUserByVeryficationToken,
+  findUserByEmail,
 } = require("../services/db-services/user-db-servise");
 const { userValidators } = require("../validators");
 const jwtServise = require("../services/jwt-servise.js");
@@ -13,9 +14,8 @@ const { genAvatar } = require("../services/avatar-service");
 const multer = require("multer");
 const Jimp = require("jimp");
 const sendEmail = require("../helpers/sendEmail.js");
-const User = require("../services/db-services/user-db-servise");
+// const User = require("../services/db-services/user-db-servise");
 const uuid = require("uuid").v4;
-
 
 exports.checkSignupData = async (req, res, next) => {
   console.log(req.body);
@@ -75,23 +75,42 @@ exports.addUserToDB = async (req, res, next) => {
   res.status(201).json(newUser);
 };
 
-exports.verifyEmail = async (req, res) => {
+exports.verifyEmail = async (req, res, next) => {
   console.log("verify");
   const verificationToken = req.params.verificationToken;
-  
-  const searchUser = await User.findUserByVeryficationToken(verificationToken);
+
+  const searchUser = await findUserByVeryficationToken(verificationToken);
 
   console.log(`verrify user:`, searchUser);
 
-  // if (!searchUser) throw res.status(404).json({ msg: "User not found" });
+  if (!searchUser) throw res.status(404).json({ msg: "User not found" });
 
-  // await User.findByIdAndUpdate(searchUser._id, {
-  //   verify: true,
-  //   verificationToken: null,
-  // });
-  // res.json({
-  //   message: "Verification successful",
-  // });
+  res.status(200).json({
+    message: "Verification successful",
+  });
+};
+
+exports.resendEmail = async (req, res) => {
+  const { email } = req.body;
+
+  const searchUserByEmail = await findUserByEmail(email);
+
+  if (!searchUserByEmail)
+    throw res.status(404).json({ msg: "Email not found" });
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify email",
+    html: `<a target="_blank" href="http://localhost:3000/users/verify/${searchUserByEmail.verificationToken}">Click verify email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
+  if (searchUserByEmail.verify===false)
+    throw res.status(200).json({ message: "Email sent successfully" });
+  console.log(`resend email:`, searchUserByEmail);
+  res.status(400).json({
+    message: "Verification has already been passed",
+  });
 };
 
 // LOGIN
