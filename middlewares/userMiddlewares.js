@@ -4,7 +4,7 @@ const {
   createUser,
   findUserByFilter,
   updateAvatar,
-  // findUserByVeryficationToken,
+  findUserByVeryficationToken,
 } = require("../services/db-services/user-db-servise");
 const { userValidators } = require("../validators");
 const jwtServise = require("../services/jwt-servise.js");
@@ -13,9 +13,8 @@ const { genAvatar } = require("../services/avatar-service");
 const multer = require("multer");
 const Jimp = require("jimp");
 const sendEmail = require("../helpers/sendEmail.js");
-// const sendEmail = require("../helpers/sendEmail.js");
 const uuid = require("uuid").v4;
-
+const { User } = require("../services/db-services/user-db-servise.js");
 
 exports.checkSignupData = async (req, res, next) => {
   console.log(req.body);
@@ -58,13 +57,13 @@ exports.makeDataReady = async (req, res, next) => {
 exports.addUserToDB = async (req, res, next) => {
   const newUser = await createUser(req.body);
   newUser.verificationToken = uuid();
-const{email} = req.body;
+  const { email } = req.body;
   newUser.token = await jwtServise.signToken(newUser._id);
 
   const verifyEmail = {
     to: email,
     subject: "Verify email",
-    html: `<a target="_blank" href="/users/verify/${newUser.verificationToken}">Click verify email</a>`,
+    html: `<a target="_blank" href="http://localhost:3000/users/verify/${newUser.verificationToken}">Click verify email</a>`,
   };
 
   await sendEmail(verifyEmail);
@@ -73,33 +72,27 @@ const{email} = req.body;
   newUser.password = undefined;
 
   res.status(201).json(newUser);
-console.log(newUser.verificationToken);
-
+  console.log(newUser.verificationToken);
 };
 
-// exports.verifyEmail = async (req, res) => {
-//    console.log("verify");
-//   //  const { verificationToken } = req.params;
-   
-//   const user = await findUserByVeryficationToken({ verificationToken:req.body});
-//   console.log(`verrify user:`,user)
+exports.verifyEmail = async (req, res) => {
+  console.log("verify");
+  const { verificationToken } = req.params;
 
-//   //  if (!user) throw res.status(404).json({msg:"User not found"});
+  const user = await findUserByVeryficationToken({ verificationToken });
+  console.log(`verrify user:`, user);
 
-//   //  await User.findByIdAndUpdate(user._id, {
-//   //    verify: true,
-//   //    verificationToken: null,
-//   //  });
-//   //  res.json({
-//   //    message: "Verification successful",
-//   //  });
-//   //   to: req.body.email,
-//   //   subject: "Verify email",
-//   //   html: `<a target="_blank" href="${process.env.BASE_URL}/users/verify/${this.verificationToken}">Click verify email</a>`,
-//   // };
+  if (!user) throw res.status(404).json({ msg: "User not found" });
 
-//   // await sendEmail(verifyEmail);
-// }
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: null,
+  });
+  res.json({
+    message: "Verification successful",
+  });
+};
+
 // LOGIN
 
 exports.checkLoginData = async (req, res, next) => {
@@ -138,11 +131,8 @@ exports.checkLoginData = async (req, res, next) => {
     }
   } catch (error) {
     res.status(401).json({ message: "Email or password is wrong" });
-
   }
 };
-
-
 
 exports.returnLoggedInUser = async (req, res, next) => {
   const token = req.token;
