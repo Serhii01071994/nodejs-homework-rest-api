@@ -15,12 +15,22 @@ const UserSchema = new mongoose.Schema({
     unique: true,
   },
   token: String,
+
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, "Verify token is required"],
+  },
 });
 
 const User = mongoose.model("user", UserSchema);
 
 exports.checkUserEmail = async (email) => {
   const user = await User.findOne({ email });
+
   if (!user) {
     console.log("not exist");
   } else {
@@ -28,6 +38,22 @@ exports.checkUserEmail = async (email) => {
     throw new Error();
   }
 };
+
+exports.findUserByVeryficationToken = async (verificationToken) => {
+  const searchUser = await User.findOne({ verificationToken });
+  console.log(`searchuser service`, searchUser);
+  await User.findByIdAndUpdate(searchUser._id, {
+    verify: true,
+    verificationToken: null,
+  });
+  return searchUser;
+};
+
+exports.findUserByEmail = async (email) => { 
+  const searchUser = await User.findOne({ email });
+  await User.findOne({ email: email });
+  return searchUser;
+}
 
 exports.findUserByFilter = async (filter) => {
   const user = await User.findOne(filter);
